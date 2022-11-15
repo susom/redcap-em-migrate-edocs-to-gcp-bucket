@@ -48,8 +48,10 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
             $rows = db_query($sql);
             while ($row = db_fetch_assoc($rows)) {
                 $file_content = file_get_contents(EDOC_PATH . $row['stored_name']);
-                if (!$file_content) {
+                if (!$file_content and !file_exists(EDOC_PATH . $row['stored_name'])) {
                     throw new \Exception($row['stored_name'] . ' does not exist');
+                } elseif (file_exists(EDOC_PATH . $row['stored_name'])) {
+                    $this->emLog($row['stored_name'] . ' exists but empty');
                 }
                 if ($GLOBALS['google_cloud_storage_api_use_project_subfolder']) {
                     $stored_name = $row['project_id'] . '/' . $row['stored_name'];
@@ -64,17 +66,18 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
             echo 'Migration completed for current batch';
         } catch (\Exception $e) {
             echo $e->getMessage();
+            $this->emError($e->getMessage());
         }
     }
 
     public function MigrateCron()
     {
-        $sql = sprintf("SELECT * FROM %s WHERE cron_name = 'migrate_edocs_to_gcp'", db_escape('redcap_crons'));
-        $rows = db_query($sql);
-        $row = db_fetch_assoc($rows);
-        if ($row['cron_instances_current'] == '0') {
-            $this->migrateFiles();
-        }
+//        $sql = sprintf("SELECT * FROM %s WHERE cron_name = 'migrate_edocs_to_gcp'", db_escape('redcap_crons'));
+//        $rows = db_query($sql);
+//        $row = db_fetch_assoc($rows);
+//        if ($row && $row['cron_instances_current'] == '0') {
+//            $this->migrateFiles();
+//        }
     }
 
     /**
