@@ -49,7 +49,7 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
             while ($row = db_fetch_assoc($rows)) {
                 $file_content = file_get_contents(EDOC_PATH . $row['stored_name']);
                 if (!$file_content and !file_exists(EDOC_PATH . $row['stored_name'])) {
-                    throw new \Exception($row['stored_name'] . ' does not exist');
+                    $this->emLog($row['stored_name'] . ' does not exist');
                 } elseif (file_exists(EDOC_PATH . $row['stored_name'])) {
                     $this->emLog($row['stored_name'] . ' exists but empty');
                 }
