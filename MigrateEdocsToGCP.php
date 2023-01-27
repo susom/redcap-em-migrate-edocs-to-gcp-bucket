@@ -50,6 +50,7 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
             $rows = db_query($sql);
             $pointer = $start;
             while ($row = db_fetch_assoc($rows)) {
+                $pointer++;
                 $file_content = file_get_contents(EDOC_PATH . $row['stored_name']);
                 if (!$file_content and !file_exists(EDOC_PATH . $row['stored_name'])) {
                     $this->emLog($row['stored_name'] . ' does not exist');
@@ -63,7 +64,6 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
                 if ($result) {
                     $this->emLog($stored_name . ' migrated to GCP');
                 }
-                $pointer++;
             }
             ExternalModules::setSystemSetting($this->PREFIX, 'start-index', (string)($pointer + 1));
             ExternalModules::setSystemSetting($this->PREFIX, 'end-index', (string)($pointer + $this->getSystemSetting('batch-size')));
