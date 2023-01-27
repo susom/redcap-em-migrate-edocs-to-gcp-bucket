@@ -69,6 +69,11 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
             ExternalModules::setSystemSetting($this->PREFIX, 'end-index', (string)($pointer + $this->getSystemSetting('batch-size')));
             echo 'Migration completed for current batch';
         } catch (\Exception $e) {
+            if ($row) {
+                echo '<pre>';
+                print_r($row);
+                echo '</pre>';
+            }
             echo $e->getMessage();
             $this->emError($e->getMessage());
         }
