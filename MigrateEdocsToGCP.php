@@ -43,13 +43,13 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
      */
     public function migrateFiles()
     {
-        try {
-            $start = $this->getSystemSetting('start-index') ?: 0;
-            $end = $this->getSystemSetting('end-index') ?: $this->getSystemSetting('batch-size');
-            $sql = sprintf("SELECT * FROM %s WHERE doc_id BETWEEN %s AND %s", db_escape('redcap_edocs_metadata'), db_escape($start), db_escape($end));
-            $rows = db_query($sql);
-            $pointer = $start;
-            while ($row = db_fetch_assoc($rows)) {
+        $start = $this->getSystemSetting('start-index') ?: 0;
+        $end = $this->getSystemSetting('end-index') ?: $this->getSystemSetting('batch-size');
+        $sql = sprintf("SELECT * FROM %s WHERE doc_id BETWEEN %s AND %s", db_escape('redcap_edocs_metadata'), db_escape($start), db_escape($end));
+        $rows = db_query($sql);
+        $pointer = $start;
+        while ($row = db_fetch_assoc($rows)) {
+            try {
                 $pointer++;
                 $file_content = file_get_contents(EDOC_PATH . $row['stored_name']);
                 if (!$file_content and !file_exists(EDOC_PATH . $row['stored_name'])) {
@@ -64,19 +64,21 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
                 if ($result) {
                     $this->emLog($stored_name . ' migrated to GCP');
                 }
+            } catch (\Exception $e) {
+                if ($row) {
+                    echo '<pre>';
+                    print_r($row);
+                    echo '</pre>';
+                }
+                echo $e->getMessage();
+                $this->emError($e->getMessage());
             }
-            ExternalModules::setSystemSetting($this->PREFIX, 'start-index', (string)($pointer + 1));
-            ExternalModules::setSystemSetting($this->PREFIX, 'end-index', (string)($pointer + $this->getSystemSetting('batch-size')));
-            echo 'Migration completed for current batch';
-        } catch (\Exception $e) {
-            if ($row) {
-                echo '<pre>';
-                print_r($row);
-                echo '</pre>';
-            }
-            echo $e->getMessage();
-            $this->emError($e->getMessage());
         }
+
+        ExternalModules::setSystemSetting($this->PREFIX, 'start-index', (string)($pointer + 1));
+        ExternalModules::setSystemSetting($this->PREFIX, 'end-index', (string)($pointer + $this->getSystemSetting('batch-size')));
+        echo 'Migration completed for current batch';
+
     }
 
     public function MigrateCron()
