@@ -87,13 +87,10 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
         $rows = db_query($sql);
         $row = db_fetch_assoc($rows);
         $this->emLog($row);
-        print_r($row);
-        if ($row && $row['cron_instances_current'] == '0') {
+        if ($row && $row['cron_instances_current'] == '1') {
             $this->emLog( 'start');
-            echo 'start';
             $this->migrateFiles();
         }
-        echo 'end';
         $this->emLog( 'end');
     }
 
