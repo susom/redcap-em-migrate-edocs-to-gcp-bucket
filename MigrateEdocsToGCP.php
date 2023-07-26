@@ -86,9 +86,15 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
         $sql = sprintf("SELECT * FROM %s WHERE cron_name = 'migrate_edocs_to_gcp'", db_escape('redcap_crons'));
         $rows = db_query($sql);
         $row = db_fetch_assoc($rows);
+        $this->emLog($row);
+        print_r($row);
         if ($row && $row['cron_instances_current'] == '0') {
+            $this->emLog( 'start');
+            echo 'start';
             $this->migrateFiles();
         }
+        echo 'end';
+        $this->emLog( 'end');
     }
 
     /**
