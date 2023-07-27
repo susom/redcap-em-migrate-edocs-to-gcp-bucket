@@ -81,6 +81,46 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
 
     }
 
+    public function migrateManual($start = 0, $end = 10000){
+        $start = $start?:$this->getSystemSetting('start-index');
+        $end = $end?:$this->getSystemSetting('end-index');
+        $sql = sprintf("SELECT * FROM %s WHERE doc_id BETWEEN %s AND %s", db_escape('redcap_edocs_metadata'), db_escape($start), db_escape($end));
+        $rows = db_query($sql);
+        $pointer = $start;
+        ExternalModules::setSystemSetting($this->PREFIX, 'start-index', (string)($end + 1));
+        ExternalModules::setSystemSetting($this->PREFIX, 'end-index', (string)($end + $this->getSystemSetting('batch-size')));
+        while ($row = db_fetch_assoc($rows)) {
+            try {
+                $pointer++;
+                $file_content = file_get_contents(EDOC_PATH . $row['stored_name']);
+                if (!$file_content and !file_exists(EDOC_PATH . $row['stored_name'])) {
+                    $this->emLog($row['stored_name'] . ' does not exist');
+                } elseif (file_exists(EDOC_PATH . $row['stored_name'])) {
+                    $this->emLog($row['stored_name'] . ' exists but empty');
+                }
+                if ($GLOBALS['google_cloud_storage_api_use_project_subfolder']) {
+                    $stored_name = $row['project_id'] . '/' . $row['stored_name'];
+                }
+                $result = $this->getBucket()->upload($file_content, array('name' => $stored_name));
+                if ($result) {
+                    $this->emLog($stored_name . ' migrated to GCP');
+                }
+            } catch (\Exception $e) {
+                if ($row) {
+                    echo '<pre>';
+                    print_r($row);
+                    echo '</pre>';
+                }
+                echo $e->getMessage();
+                $this->emError($e->getMessage());
+            }
+        }
+
+
+        echo 'Migration completed for current batch';
+
+    }
+
     public function MigrateCron()
     {
         $sql = sprintf("SELECT * FROM %s WHERE cron_name = 'migrate_edocs_to_gcp'", db_escape('redcap_crons'));
