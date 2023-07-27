@@ -81,14 +81,16 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
 
     }
 
-    public function migrateManual($start = 0, $end = 10000){
+    public function migrateManual($start = 0, $end = 10000, $update = true){
         $start = $start?:$this->getSystemSetting('start-index');
         $end = $end?:$this->getSystemSetting('end-index');
         $sql = sprintf("SELECT * FROM %s WHERE doc_id BETWEEN %s AND %s", db_escape('redcap_edocs_metadata'), db_escape($start), db_escape($end));
         $rows = db_query($sql);
         $pointer = $start;
-        ExternalModules::setSystemSetting($this->PREFIX, 'start-index', (string)($end + 1));
-        ExternalModules::setSystemSetting($this->PREFIX, 'end-index', (string)($end + $this->getSystemSetting('batch-size')));
+        if($update){
+            ExternalModules::setSystemSetting($this->PREFIX, 'start-index', (string)($end + 1));
+            ExternalModules::setSystemSetting($this->PREFIX, 'end-index', (string)($end + $this->getSystemSetting('batch-size')));
+        }
         while ($row = db_fetch_assoc($rows)) {
             try {
                 $pointer++;
