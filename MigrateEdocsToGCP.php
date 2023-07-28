@@ -65,7 +65,7 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
                 if ($result) {
                     $this->emLog($stored_name . ' migrated to GCP');
                 }
-                $this->emLog('Done');
+                #$this->emLog('Done');
             } catch (\Exception $e) {
                 if ($row) {
                     echo '<pre>';
