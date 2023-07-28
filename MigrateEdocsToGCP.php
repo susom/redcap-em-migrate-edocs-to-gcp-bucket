@@ -23,6 +23,7 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
      */
     private $bucket;
 
+
     public function __construct()
     {
         parent::__construct();
@@ -64,6 +65,7 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
                 if ($result) {
                     $this->emLog($stored_name . ' migrated to GCP');
                 }
+                $this->emLog('Done');
             } catch (\Exception $e) {
                 if ($row) {
                     echo '<pre>';
@@ -72,6 +74,7 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
                 }
                 echo $e->getMessage();
                 $this->emError($e->getMessage());
+                $this->emLog($e->getMessage());
             }
         }
 
@@ -103,7 +106,8 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
                 printf('Object: %s' . PHP_EOL, $object->name());
                 $this->emLog('Object: ' . $object->name());
                 $name = $object->name();
-                $new_name = str_replace('temp_folder', 'new_folder', $name);
+                $stored_name = str_replace('temp_folder/', '', $name);
+                $new_name = $this->getEdocProjectId($stored_name) . '/' . $name;
                 $object->copy($bucket_name, ['name' => $new_name]);
                 $object->delete();
             }
@@ -111,6 +115,12 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
             echo $e->getMessage();
         }
     }
+
+    private function getEdocProjectId($edoc){
+        $parts = explode('_', $edoc);
+        return str_replace('pid', '', $parts[1]);
+    }
+
     public function migrateManual($start = 0, $end = 10000, $update = true){
         $start = $start?:$this->getSystemSetting('start-index');
         $end = $end?:$this->getSystemSetting('end-index');
