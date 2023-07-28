@@ -93,6 +93,24 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
         $this->getSystemSetting('gcp-bucket-name'),
         $new_name);
     }
+
+    public function moveTempEdocs(){
+        try {
+            $bucket_name = $this->getSystemSetting('gcp-bucket-name');
+            $bucket = $this->getBucket();
+            $options = ['prefix' => 'temp_folder/'];
+            foreach ($bucket->objects($options) as $object) {
+                printf('Object: %s' . PHP_EOL, $object->name());
+                $this->emLog('Object: ' . $object->name());
+                $name = $object->name();
+                $new_name = str_replace('temp_folder', 'new_folder', $name);
+                $object->copy($bucket_name, ['name' => $new_name]);
+                $object->delete();
+            }
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+        }
+    }
     public function migrateManual($start = 0, $end = 10000, $update = true){
         $start = $start?:$this->getSystemSetting('start-index');
         $end = $end?:$this->getSystemSetting('end-index');

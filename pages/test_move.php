@@ -7,7 +7,7 @@ namespace Stanford\MigrateEdocsToGCP;
 
 try {
 
-    $module->testMove();
+    $module->moveTempEdocs();
 } catch (\Exception $e) {
     echo $e->getMessage();
 }
