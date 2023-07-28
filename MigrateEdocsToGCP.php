@@ -78,8 +78,8 @@ class MigrateEdocsToGCP extends \ExternalModules\AbstractExternalModule
             }
         }
 
-        ExternalModules::setSystemSetting($this->PREFIX, 'start-index', (string)($pointer + 1));
-        ExternalModules::setSystemSetting($this->PREFIX, 'end-index', (string)($pointer + $this->getSystemSetting('batch-size')));
+        ExternalModules::setSystemSetting($this->PREFIX, 'start-index', (string)($end + 1));
+        ExternalModules::setSystemSetting($this->PREFIX, 'end-index', (string)($end + $this->getSystemSetting('batch-size')));
         echo 'Migration completed for current batch';
 
     }
